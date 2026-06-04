@@ -15,7 +15,7 @@ crewai-tools==0.0.1              # BaseTool, structured tool support (pinned to 
 # Data validation & contracts
 # NOTE: Pin pydantic-core explicitly to avoid Render building from source.
 pydantic==2.10.6
-pydantic-core==2.27.2
+
 
 
 
