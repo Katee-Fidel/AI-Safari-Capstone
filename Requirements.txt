@@ -18,3 +18,6 @@ pydantic==2.9.*
 # Utilities
 python-decouple==3.8             # 12-factor config from .env
 gunicorn==22.0.*                 # Production WSGI server
+dj-database-url==2.2.*
+whitenoise==6.7.*
+
