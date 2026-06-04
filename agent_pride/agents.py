@@ -23,7 +23,7 @@ import logging
 from typing import Any
 
 from crewai import Agent
-from crewai.tools import BaseTool
+from langchain_core.tools import BaseTool
 from pydantic import BaseModel, Field
 
 logger = logging.getLogger(__name__)
