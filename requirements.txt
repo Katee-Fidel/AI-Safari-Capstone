@@ -17,6 +17,9 @@ crewai-tools==0.0.1              # BaseTool, structured tool support (pinned to 
 pydantic==2.10.6
 pydantic-core==2.27.2
 
+
+
+
 # Force pip to use prebuilt wheels when available (prevents maturin/rust source fallback)
 --prefer-binary
 
