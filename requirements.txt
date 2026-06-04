@@ -13,7 +13,10 @@ crewai==0.11.*                   # CrewAI multi-agent orchestration (pinned to a
 crewai-tools==0.0.1              # BaseTool, structured tool support (pinned to available PyPI release)
 
 # Data validation & contracts
+# NOTE: Pin pydantic-core explicitly to avoid Render building from source.
 pydantic==2.10.6
+pydantic-core==2.27.2
+
 
 # Build helpers (avoid wheel/metadata issues on managed builders)
 setuptools>=69.0.0
