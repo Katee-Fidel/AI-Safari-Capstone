@@ -1,0 +1,20 @@
+# Agent Pride — Python dependencies
+# ===================================
+# Python 3.11+ required.
+
+# Web framework
+Django==5.1.*
+djangorestframework==3.15.*
+psycopg[binary]==3.2.*          # PostgreSQL driver (async-ready)
+django-cors-headers==4.4.*
+
+# Agent framework
+crewai==0.11.*                   # CrewAI multi-agent orchestration (pinned to available PyPI release)
+crewai-tools==0.0.1              # BaseTool, structured tool support (pinned to available PyPI release)
+
+# Data validation & contracts
+pydantic==2.9.*
+
+# Utilities
+python-decouple==3.8             # 12-factor config from .env
+gunicorn==22.0.*                 # Production WSGI server
