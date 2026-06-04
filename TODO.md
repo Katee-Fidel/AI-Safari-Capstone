@@ -2,7 +2,8 @@
 
 ## Goal: Fix Render deployment error: `error: metadata-generation-failed` while generating package metadata for `pydantic-core`
 
-- [ ] Gather detailed build logs from Render (the full traceback) and identify the failing wheel/build step for `pydantic-core`.
+- [x] Gather detailed build logs from Render (the full traceback) and identify the failing wheel/build step for `pydantic-core`.
+
 - [ ] Inspect `requirements.txt` and dependency graph to confirm why `pydantic-core` is being built from source (missing manylinux wheel / build toolchain).
 - [ ] Update packaging/dependency strategy (pin/upgrade `pydantic`/`pydantic-core` and/or add a prebuilt-wheel workaround) and adjust Render build settings if needed.
 - [ ] Remove/adjust any dependencies that force source builds (if present) and re-run `pip install -r requirements.txt` locally with `--no-build-isolation` / `--prefer-binary` to reproduce.
