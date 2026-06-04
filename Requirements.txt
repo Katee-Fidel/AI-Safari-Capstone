@@ -5,7 +5,7 @@
 # Web framework
 Django==5.1.*
 djangorestframework==3.15.*
-psycopg[binary]==3.2.*          # PostgreSQL driver (async-ready)
+psycopg==3.2.*                 # PostgreSQL driver
 django-cors-headers==4.4.*
 
 # Agent framework
@@ -14,6 +14,10 @@ crewai-tools==0.0.1              # BaseTool, structured tool support (pinned to 
 
 # Data validation & contracts
 pydantic==2.9.*
+
+# Build helpers (avoid wheel/metadata issues on managed builders)
+setuptools>=69.0.0
+wheel>=0.43.0
 
 # Utilities
 python-decouple==3.8             # 12-factor config from .env
