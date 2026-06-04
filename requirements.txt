@@ -22,8 +22,11 @@ pydantic-core==2.27.2
 
 # Build helpers (avoid wheel/metadata issues on managed builders)
 
+# NOTE: Pin pydantic-core version explicitly and avoid Rust builds.
 setuptools>=69.0.0
+
 wheel>=0.43.0
+
 
 # Utilities
 python-decouple==3.8             # 12-factor config from .env

@@ -17,6 +17,8 @@ pydantic-core==2.27.2
 --prefer-binary
 
 setuptools>=69.0.0
+
+
 wheel>=0.43.0
 
 python-decouple==3.8
