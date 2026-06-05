@@ -16,7 +16,7 @@ pydantic-core==2.27.2
 
 
 --only-binary=:all:
---no-deps
+
 
 
 setuptools>=69.0.0
