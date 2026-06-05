@@ -12,9 +12,10 @@ crewai==0.11.*
 crewai-tools==0.0.1
 
 pydantic==2.10.6
+pydantic-core==2.47.0
 
 
---prefer-binary
+--only-binary=:all:
 
 
 setuptools>=69.0.0
