@@ -1,20 +1,14 @@
 # Agent Pride — Render pinned deps
-# ===================================
-# NOTE: This file is optional; use it only if you want to switch Render to a dedicated requirements set.
-# pydantic-core pinned to avoid maturin/rust build fallback.
 
 Django==5.1.*
 djangorestframework==3.15.*
 psycopg[binary]==3.2.*
 django-cors-headers==4.4.*
 
-crewai>=0.86.0,<2.0.0
-crewai-tools>=0.25.0,<2.0.0
+crewai==1.14.6
+crewai-tools==1.14.6
 
-# Keep pydantic-core aligned with pydantic==2.10.6.
-# pydantic 2.10.6 depends on pydantic-core==2.27.2
-pydantic==2.10.6
-pydantic-core==2.27.2
+pydantic>=2.10,<3.0
 
 python-decouple==3.8
 gunicorn==22.0.*
@@ -23,4 +17,3 @@ whitenoise==6.7.*
 
 setuptools>=69.0.0
 wheel>=0.43.0
-
