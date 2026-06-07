@@ -1,14 +1,20 @@
 # Agent Pride — Render pinned deps
+# ===================================
+# Render build uses this file. Keep versions aligned with runtime deps.
 
 Django==5.1.*
 djangorestframework==3.15.*
 psycopg[binary]==3.2.*
 django-cors-headers==4.4.*
 
+# Match your codebase expectations (agents.py imports BaseTool from langchain_core)
 crewai==1.14.6
 crewai-tools==1.14.6
+langchain-core==0.1.53
 
-pydantic>=2.10,<3.0
+# Keep pydantic-core aligned with pydantic==2.10.6
+pydantic==2.10.6
+pydantic-core==2.27.2
 
 python-decouple==3.8
 gunicorn==22.0.*
@@ -17,3 +23,4 @@ whitenoise==6.7.*
 
 setuptools>=69.0.0
 wheel>=0.43.0
+
