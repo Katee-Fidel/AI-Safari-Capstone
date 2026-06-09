@@ -9,19 +9,24 @@ psycopg==3.2.*                 # PostgreSQL driver
 django-cors-headers==4.4.*
 
 # Agent framework
-crewai==0.11.*                   # CrewAI multi-agent orchestration (pinned to available PyPI release)
-crewai-tools==0.0.1              # BaseTool, structured tool support (pinned to available PyPI release)
+# Align CrewAI versions with Render/build so agent/tool APIs match
+crewai==1.14.6
+crewai-tools==1.14.6
+
+# CrewAI tool code expects langchain_core types
+langchain-core>=0.3.0
+langchain>=0.3.0
+
 
 # Data validation & contracts
 # NOTE: Pin pydantic-core explicitly to avoid Render building from source.
 pydantic==2.10.6
-
-
-
+pydantic-core==2.27.2
 
 
 # Force pip to use prebuilt wheels when available (prevents maturin/rust source fallback)
 --prefer-binary
+
 
 # Build helpers (avoid wheel/metadata issues on managed builders)
 

@@ -623,8 +623,41 @@ class AgentPridePipeline:
         violations_found = False
         recs = list(crew_output.recommendations)
 
+        # Defensive: if no recommendations are provided, treat as a violation
+        # and collapse to safe-harbour fallback.
+        if not recs:
+            checks.append(
+                ComplianceCheckSchema(
+                    rule_id="RULE_EMPTY_006",
+                    description="Crew output must include at least one recommendation.",
+                    passed=False,
+                    observed_value=0.0,
+                    threshold=1.0,
+                )
+            )
+            violations_found = True
+            final_recs = [FALLBACK_RECOMMENDATION]
+            fallback_applied = True
+            violated_rules = [c.rule_id for c in checks if not c.passed]
+            sentinel_verdict = (
+                f"SENTINEL OVERRIDE: No recommendations returned. "
+                f"Collapsed to safe-harbour MMF fallback. Violated {violated_rules}."
+            )
+            blended_default_risk = self._estimate_blended_default_risk(final_recs)
+            max_leverage = self._resolve_max_leverage(final_recs)
+            return VerifiedAllocationSchema(
+                session_id=crew_output.session_id,
+                final_recommendations=final_recs,
+                compliance_checks=checks,
+                fallback_applied=fallback_applied,
+                overall_default_risk_pct=round(blended_default_risk, 3),
+                max_leverage_ratio=round(max_leverage, 3),
+                sentinel_verdict=sentinel_verdict,
+            )
+
         # RULE_DR_001: Blended default risk
         blended_default_risk = self._estimate_blended_default_risk(recs)
+
         dr_pass = blended_default_risk < MAX_DEFAULT_RISK_PCT
         checks.append(ComplianceCheckSchema(
             rule_id="RULE_DR_001",
@@ -886,6 +919,7 @@ class AgentPridePipeline:
 
         self._emit_completion_signal(ledger, ledger_schema)
         return ledger_id
+
 
     @staticmethod
     def _emit_completion_signal(

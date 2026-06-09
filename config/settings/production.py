@@ -24,12 +24,13 @@ DATABASES = {
 
 # Static files (WhiteNoise)
 STATIC_ROOT = BASE_DIR / "staticfiles"
-STATICFILES_STORAGE = "django.contrib.staticfiles.storage.StaticFilesStorage"
+STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 
-MIDDLEWARE = [
-    "whitenoise.middleware.WhiteNoiseMiddleware",
-    *MIDDLEWARE,
-]
+
+# WhiteNoiseMiddleware is already included in base settings.
+# Avoid duplicating it here.
+MIDDLEWARE = [*MIDDLEWARE]
+
 
 CORS_ALLOWED_ORIGINS = os.environ.get("CORS_ALLOWED_ORIGINS", "").split(",")
 
