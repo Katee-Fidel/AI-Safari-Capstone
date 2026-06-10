@@ -13,8 +13,6 @@ from __future__ import annotations
 from crewai import Agent, Task
 
 from .schemas import ExecutionIntentSchema
-
-
 # ---------------------------------------------------------------------------
 # Task factory functions
 # ---------------------------------------------------------------------------
@@ -138,7 +136,7 @@ The JSON must strictly follow this structure:
       "rationale": "<1-2 sentence justification>"
     }}
   ],
-  "chain_of_thought_md": "<Full Markdown reasoning trace explaining your allocation decisions>"
+  "chain_of_thought_md": "<Full reasoning trace as a SINGLE LINE string. Use literal \\n for line breaks. Do NOT use actual newlines inside this string value.>"
 }}
 
 The `chain_of_thought_md` field must describe:

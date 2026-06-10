@@ -163,19 +163,15 @@ class PipelineIngestView(APIView):
             )
 
         except CrewExecutionError as exc:
-            logger.error("PipelineIngestView: Crew execution error — %s", exc)
-            detail = (
-                str(exc)
-                if settings.DEBUG
-                else (
-                    "The CrewAI processing core encountered an error. "
-                    "Please retry the request."
-                )
-            )
+            logger.error("PipelineIngestView: Crew execution error — %s", exc, extra={"error_type": exc.__class__.__name__})
             return Response(
                 {
                     "error": "AI agent orchestration failed.",
-                    "detail": detail,
+                    "detail": (
+                        str(exc)
+                        if settings.DEBUG
+                        else "The CrewAI processing core returned malformed output. Please retry."
+                    ),
                     "status": "SERVICE_UNAVAILABLE",
                 },
                 status=status.HTTP_503_SERVICE_UNAVAILABLE,

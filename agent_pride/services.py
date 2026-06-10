@@ -561,20 +561,40 @@ class AgentPridePipeline:
         cleaned = re.sub(r"```(?:json)?\s*", "", raw_output).strip()
         cleaned = re.sub(r"```\s*$", "", cleaned).strip()
 
-        json_match = re.search(r"\{.*\}", cleaned, re.DOTALL)
-        if not json_match:
+        # Prefer extracting the full JSON object to avoid partial matches.
+        first_brace = cleaned.find("{")
+        last_brace = cleaned.rfind("}")
+        if first_brace == -1 or last_brace == -1 or last_brace <= first_brace:
             raise CrewExecutionError(
                 "No JSON object found in Crew output. "
                 f"Raw output (first 500 chars): {raw_output[:500]}"
             )
 
+        extracted = cleaned[first_brace : last_brace + 1]
+
         try:
-            parsed_dict = json.loads(json_match.group(0))
+            parsed_dict = json.loads(extracted)
         except json.JSONDecodeError as exc:
-            raise CrewExecutionError(
-                f"Crew output JSON is malformed: {exc}. "
-                f"Extracted string (first 500 chars): {json_match.group(0)[:500]}"
-            ) from exc
+            # Common failure mode: invalid control characters inside strings
+            # (often within chain_of_thought_md). Attempt a minimal repair:
+            # replace raw control chars with escaped sequences.
+            repaired = extracted
+            # Only patch obviously-problematic control characters.
+            repaired = repaired.replace("\u0000", "\\u0000")
+            repaired = repaired.replace("\x0b", "\\u000b")
+            repaired = repaired.replace("\x0c", "\\u000c")
+            # JSON requires newlines/tabs inside strings to be escaped.
+            repaired = repaired.replace("\t", "\\t")
+            repaired = repaired.replace("\r", "\\r")
+            repaired = repaired.replace("\n", "\\n")
+
+            try:
+                parsed_dict = json.loads(repaired)
+            except json.JSONDecodeError:
+                raise CrewExecutionError(
+                    f"Crew output JSON is malformed: {exc}. "
+                    f"Extracted string (first 500 chars): {extracted[:500]}"
+                ) from exc
 
         parsed_dict["session_id"] = str(session_id)
         parsed_dict["crew_run_duration_seconds"] = round(duration, 3)

@@ -33,6 +33,7 @@ logger = logging.getLogger(__name__)
 def build_configured_llm() -> LLM:
     """Build the CrewAI LLM from Django settings."""
     model = getattr(settings, "LLM_MODEL", "") or "gpt-4o-mini"
+    provider = getattr(settings, "LLM_PROVIDER", "") or ""
     api_key = (
         getattr(settings, "LLM_API_KEY", "")
         or getattr(settings, "OPENAI_API_KEY", "")
@@ -53,6 +54,9 @@ def build_configured_llm() -> LLM:
         kwargs["api_key"] = api_key
     if base_url:
         kwargs["base_url"] = base_url
+    if provider.lower() == "groq":
+        kwargs["model"] = model.removeprefix("groq/")
+        kwargs["provider"] = "openai"
 
     return LLM(**kwargs)
 

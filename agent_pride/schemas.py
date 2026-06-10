@@ -4,8 +4,9 @@ import uuid
 from enum import Enum
 from typing import Any
 
-from pydantic import BaseModel
+import re
 
+from pydantic import BaseModel, field_validator
 
 class AssetClass(str, Enum):
     MMF = "MMF"
@@ -80,6 +81,14 @@ class CrewOutputSchema(BaseModel):
     crew_run_duration_seconds: float
     recommendations: list[AssetRecommendationSchema]
     chain_of_thought_md: str
+
+    @field_validator("chain_of_thought_md", mode="before")
+    @classmethod
+    def sanitise_cot(cls, v: str) -> str:
+        """Strip control characters that break JSON serialisation."""
+        if not isinstance(v, str):
+            return str(v)
+        return re.sub(r"[\x00-\x08\x0b\x0c\x0e-\x1f\x7f]", "", v)
 
 
 class VerifiedAllocationSchema(BaseModel):
