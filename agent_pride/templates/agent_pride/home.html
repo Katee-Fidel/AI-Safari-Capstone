@@ -1,0 +1,251 @@
+{% load static %}
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Agent Pride</title>
+  <link rel="stylesheet" href="{% static 'agent_pride/home.css' %}">
+</head>
+<body>
+  <main class="shell">
+    <section class="panel intro">
+      <div>
+        <p class="eyebrow">Agent Pride</p>
+        <h1>Investment guidance from simple financial signals</h1>
+        <p class="lede">
+          Enter anonymised customer activity bands and receive a guarded allocation summary with compliance checks.
+        </p>
+      </div>
+      <div class="status-strip" aria-label="Pipeline steps">
+        <span>Sanitise</span>
+        <span>Classify</span>
+        <span>Allocate</span>
+        <span>Verify</span>
+      </div>
+    </section>
+
+    <section class="workspace">
+      <form id="pipeline-form" class="panel form-panel">
+        {% csrf_token %}
+        <div class="form-heading">
+          <h2>Customer Signals</h2>
+          <button type="button" id="sample-button" class="ghost-button">Use sample</button>
+        </div>
+
+        <label>
+          Balance tier
+          <input name="balance_tier" type="number" min="1" max="10" step="1" value="6" required>
+        </label>
+
+        <label>
+          Velocity score
+          <input name="velocity_score" type="number" min="0" max="100" step="0.1" value="62" required>
+        </label>
+
+        <label>
+          Frequency multiplier
+          <input name="frequency_multiplier" type="number" min="0.1" max="50" step="0.1" value="2.4" required>
+        </label>
+
+        <label>
+          Average transaction size tier
+          <input name="avg_transaction_size_tier" type="number" min="1" max="10" step="1" value="5" required>
+        </label>
+
+        <label>
+          Active M-Pesa days in last 30
+          <input name="mpesa_active_days_last_30" type="number" min="0" max="30" step="1" value="22" required>
+        </label>
+
+        <label>
+          Bill payment regularity
+          <input name="bill_payment_regularity" type="number" min="0" max="1" step="0.01" value="0.84" required>
+        </label>
+
+        <div class="inline-fields">
+          <label class="checkbox-label">
+            <input name="chama_participation_flag" type="checkbox">
+            Chama participant
+          </label>
+
+          <label>
+            Chama contribution tier
+            <input name="chama_contribution_tier" type="number" min="0" max="10" step="1" value="0">
+          </label>
+        </div>
+
+        <label>
+          Source channel
+          <input name="source_channel" type="text" value="web-ui" maxlength="64">
+        </label>
+
+        <button id="submit-button" class="primary-button" type="submit">Run recommendation</button>
+        <p id="form-message" class="form-message" role="status"></p>
+      </form>
+
+      <aside class="panel result-panel" aria-live="polite">
+        <div class="result-header">
+          <div>
+            <p class="eyebrow">Result</p>
+            <h2 id="result-title">Ready when you are</h2>
+          </div>
+          <span id="result-status" class="badge">Waiting</span>
+        </div>
+
+        <div id="empty-result" class="empty-state">
+          Submit a profile to see risk tier, allocation choices, and verification notes.
+        </div>
+
+        <div id="result-content" class="result-content" hidden>
+          <dl class="metrics">
+            <div>
+              <dt>Risk tier</dt>
+              <dd id="risk-tier"></dd>
+            </div>
+            <div>
+              <dt>Income pattern</dt>
+              <dd id="income-pattern"></dd>
+            </div>
+            <div>
+              <dt>Default risk</dt>
+              <dd id="default-risk"></dd>
+            </div>
+          </dl>
+
+          <h3>Recommendations</h3>
+          <div id="recommendations" class="recommendations"></div>
+
+          <h3>Verification</h3>
+          <p id="sentinel-verdict" class="verdict"></p>
+          <ul id="compliance-checks" class="checks"></ul>
+        </div>
+      </aside>
+    </section>
+  </main>
+
+  <script>
+    const form = document.querySelector("#pipeline-form");
+    const sampleButton = document.querySelector("#sample-button");
+    const submitButton = document.querySelector("#submit-button");
+    const formMessage = document.querySelector("#form-message");
+    const emptyResult = document.querySelector("#empty-result");
+    const resultContent = document.querySelector("#result-content");
+    const resultStatus = document.querySelector("#result-status");
+    const resultTitle = document.querySelector("#result-title");
+
+    const sample = {
+      balance_tier: 8,
+      velocity_score: 28,
+      frequency_multiplier: 1.2,
+      avg_transaction_size_tier: 7,
+      mpesa_active_days_last_30: 24,
+      bill_payment_regularity: 0.93,
+      chama_contribution_tier: 2,
+      source_channel: "web-ui"
+    };
+
+    sampleButton.addEventListener("click", () => {
+      Object.entries(sample).forEach(([key, value]) => {
+        const field = form.elements[key];
+        if (field) field.value = value;
+      });
+      form.elements.chama_participation_flag.checked = false;
+    });
+
+    function cleanLabel(value) {
+      return String(value || "").replaceAll("_", " ").toLowerCase()
+        .replace(/\b\w/g, char => char.toUpperCase());
+    }
+
+    function payloadFromForm() {
+      const data = new FormData(form);
+      return {
+        balance_tier: Number(data.get("balance_tier")),
+        velocity_score: Number(data.get("velocity_score")),
+        frequency_multiplier: Number(data.get("frequency_multiplier")),
+        avg_transaction_size_tier: Number(data.get("avg_transaction_size_tier")),
+        mpesa_active_days_last_30: Number(data.get("mpesa_active_days_last_30")),
+        bill_payment_regularity: Number(data.get("bill_payment_regularity")),
+        chama_participation_flag: data.has("chama_participation_flag"),
+        chama_contribution_tier: Number(data.get("chama_contribution_tier") || 0),
+        source_channel: String(data.get("source_channel") || "web-ui")
+      };
+    }
+
+    function renderResult(result) {
+      emptyResult.hidden = true;
+      resultContent.hidden = false;
+      resultTitle.textContent = "Recommendation complete";
+      resultStatus.textContent = result.status;
+      resultStatus.className = result.fallback_applied ? "badge warning" : "badge success";
+
+      document.querySelector("#risk-tier").textContent = cleanLabel(result.risk_tier);
+      document.querySelector("#income-pattern").textContent = cleanLabel(result.income_pattern);
+      document.querySelector("#default-risk").textContent = `${result.overall_default_risk_pct}%`;
+      document.querySelector("#sentinel-verdict").textContent = result.sentinel_verdict;
+
+      const recommendations = document.querySelector("#recommendations");
+      recommendations.innerHTML = "";
+      result.recommendations.forEach(item => {
+        const article = document.createElement("article");
+        article.className = "recommendation";
+        article.innerHTML = `
+          <div>
+            <strong>${cleanLabel(item.asset_class)}</strong>
+            <span>${item.provider_name}</span>
+          </div>
+          <b>${item.allocation_pct}%</b>
+          <p>${item.rationale}</p>
+          <small>Expected yield: ${item.expected_yield_pct}%</small>
+        `;
+        recommendations.appendChild(article);
+      });
+
+      const checks = document.querySelector("#compliance-checks");
+      checks.innerHTML = "";
+      result.compliance_checks.forEach(check => {
+        const li = document.createElement("li");
+        li.textContent = `${check.passed ? "Passed" : "Review"}: ${check.description}`;
+        li.className = check.passed ? "passed" : "failed";
+        checks.appendChild(li);
+      });
+    }
+
+    form.addEventListener("submit", async event => {
+      event.preventDefault();
+      submitButton.disabled = true;
+      submitButton.textContent = "Running...";
+      formMessage.textContent = "The pipeline is processing this profile.";
+      resultStatus.textContent = "Running";
+
+      try {
+        const ingestResponse = await fetch("/api/v1/pipeline/ingest/", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "X-CSRFToken": form.querySelector("[name=csrfmiddlewaretoken]").value
+          },
+          body: JSON.stringify(payloadFromForm())
+        });
+        const ingest = await ingestResponse.json();
+        if (!ingestResponse.ok) throw new Error(ingest.detail || ingest.error || "Request failed.");
+
+        const resultResponse = await fetch(`/api/v1/ledger/${ingest.ledger_id}/`);
+        const result = await resultResponse.json();
+        if (!resultResponse.ok) throw new Error(result.detail || "Result lookup failed.");
+
+        renderResult(result);
+        formMessage.textContent = `Saved ledger ${ingest.ledger_id}.`;
+      } catch (error) {
+        resultStatus.textContent = "Needs attention";
+        resultStatus.className = "badge warning";
+        formMessage.textContent = error.message;
+      } finally {
+        submitButton.disabled = false;
+        submitButton.textContent = "Run recommendation";
+      }
+    });
+  </script>
+</body>
+</html>

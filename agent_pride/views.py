@@ -26,22 +26,23 @@ from __future__ import annotations
 import logging
 import uuid
 
+from django.conf import settings
+from django.shortcuts import get_object_or_404, render
 from rest_framework import status
+from rest_framework.permissions import AllowAny
 
 from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from .services import (
-    AgentPridePipeline,
-    ClassificationError,
-    CrewExecutionError,
-    PersistenceError,
-    PipelineError,
-    SanitisationError,
-)
+from .models import ExecutionLedger
 
 logger = logging.getLogger(__name__)
+
+
+def home(request):
+    """Render the simple nontechnical pipeline interface."""
+    return render(request, "agent_pride/home.html")
 
 
 class PipelineIngestView(APIView):
@@ -88,6 +89,9 @@ class PipelineIngestView(APIView):
         503 Service Unavailable — CrewAI or persistence layer failure.
     """
 
+    authentication_classes = []
+    permission_classes = [AllowAny]
+
     def post(self, request: Request) -> Response:
         """
         Handle a POST request to execute the Agent Pride pipeline.
@@ -118,6 +122,15 @@ class PipelineIngestView(APIView):
                 },
                 status=status.HTTP_400_BAD_REQUEST,
             )
+
+        from .services import (  # noqa: PLC0415
+            AgentPridePipeline,
+            ClassificationError,
+            CrewExecutionError,
+            PersistenceError,
+            PipelineError,
+            SanitisationError,
+        )
 
         pipeline = AgentPridePipeline()
 
@@ -151,13 +164,18 @@ class PipelineIngestView(APIView):
 
         except CrewExecutionError as exc:
             logger.error("PipelineIngestView: Crew execution error — %s", exc)
+            detail = (
+                str(exc)
+                if settings.DEBUG
+                else (
+                    "The CrewAI processing core encountered an error. "
+                    "Please retry the request."
+                )
+            )
             return Response(
                 {
                     "error": "AI agent orchestration failed.",
-                    "detail": (
-                        "The CrewAI processing core encountered an error. "
-                        "Please retry the request."
-                    ),
+                    "detail": detail,
                     "status": "SERVICE_UNAVAILABLE",
                 },
                 status=status.HTTP_503_SERVICE_UNAVAILABLE,
@@ -212,4 +230,29 @@ class PipelineIngestView(APIView):
                 "status": "ACCEPTED",
             },
             status=status.HTTP_202_ACCEPTED,
+        )
+
+
+class LedgerResultView(APIView):
+    """Return a concise, user-safe view of a completed pipeline run."""
+
+    authentication_classes = []
+    permission_classes = [AllowAny]
+
+    def get(self, request: Request, ledger_id: uuid.UUID) -> Response:
+        ledger = get_object_or_404(ExecutionLedger, ledger_id=ledger_id)
+        return Response(
+            {
+                "ledger_id": str(ledger.ledger_id),
+                "status": ledger.status,
+                "income_pattern": ledger.income_pattern,
+                "risk_tier": ledger.risk_tier,
+                "fallback_applied": ledger.fallback_applied,
+                "overall_default_risk_pct": float(ledger.overall_default_risk_pct),
+                "max_leverage_ratio": float(ledger.max_leverage_ratio),
+                "sentinel_verdict": ledger.sentinel_verdict,
+                "recommendations": ledger.final_recommendations_json,
+                "compliance_checks": ledger.compliance_checks_json,
+                "created_at": ledger.created_at.isoformat(),
+            }
         )

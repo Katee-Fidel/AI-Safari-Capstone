@@ -1,1 +1,1 @@
-web: sh -c "python manage.py migrate && gunicorn config.wsgi:application --bind 0.0.0.0:$PORT --workers 2"
+web: gunicorn config.wsgi:application --bind 0.0.0.0:$PORT --workers 2 --timeout 180

@@ -5,6 +5,14 @@ import dj_database_url
 
 DEBUG = False
 
+render_hostname = os.environ.get("RENDER_EXTERNAL_HOSTNAME")
+configured_hosts = os.environ.get("ALLOWED_HOSTS", "")
+ALLOWED_HOSTS = [host for host in configured_hosts.split(",") if host]
+if render_hostname:
+    ALLOWED_HOSTS.append(render_hostname)
+if not ALLOWED_HOSTS:
+    ALLOWED_HOSTS = ["localhost"]
+
 # Enforce HTTPS
 SECURE_SSL_REDIRECT = True
 SECURE_HSTS_SECONDS = 31536000
@@ -32,5 +40,15 @@ STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 MIDDLEWARE = [*MIDDLEWARE]
 
 
-CORS_ALLOWED_ORIGINS = os.environ.get("CORS_ALLOWED_ORIGINS", "").split(",")
+CORS_ALLOWED_ORIGINS = [
+    origin for origin in os.environ.get("CORS_ALLOWED_ORIGINS", "").split(",")
+    if origin
+]
+
+CSRF_TRUSTED_ORIGINS = [
+    origin for origin in os.environ.get("CSRF_TRUSTED_ORIGINS", "").split(",")
+    if origin
+]
+if render_hostname:
+    CSRF_TRUSTED_ORIGINS.append(f"https://{render_hostname}")
 

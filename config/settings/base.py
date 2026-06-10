@@ -1,7 +1,15 @@
 from pathlib import Path
+import os
+
 from decouple import config, Csv
 
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
+
+# Keep CrewAI startup deterministic in web workers. The pipeline persists its
+# own audit trail in PostgreSQL, so CrewAI's optional local telemetry/tracing is
+# not needed for this service.
+os.environ.setdefault("CREWAI_DISABLE_TELEMETRY", "true")
+os.environ.setdefault("CREWAI_DISABLE_TRACKING", "true")
 
 SECRET_KEY = config("SECRET_KEY")
 DEBUG = config("DEBUG", default=False, cast=bool)

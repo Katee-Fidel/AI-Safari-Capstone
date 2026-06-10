@@ -22,11 +22,39 @@ import json
 import logging
 from typing import Any
 
-from crewai import Agent
-from langchain_core.tools import BaseTool
+from crewai import Agent, LLM
+from crewai.tools import BaseTool
+from django.conf import settings
 from pydantic import BaseModel, Field
 
 logger = logging.getLogger(__name__)
+
+
+def build_configured_llm() -> LLM:
+    """Build the CrewAI LLM from Django settings."""
+    model = getattr(settings, "LLM_MODEL", "") or "gpt-4o-mini"
+    api_key = (
+        getattr(settings, "LLM_API_KEY", "")
+        or getattr(settings, "OPENAI_API_KEY", "")
+        or None
+    )
+    base_url = (
+        getattr(settings, "LLM_BASE_URL", "")
+        or getattr(settings, "OPENAI_API_BASE", "")
+        or None
+    )
+
+    kwargs: dict[str, Any] = {
+        "model": model,
+        "temperature": 0.2,
+        "timeout": 120,
+    }
+    if api_key:
+        kwargs["api_key"] = api_key
+    if base_url:
+        kwargs["base_url"] = base_url
+
+    return LLM(**kwargs)
 
 
 # ---------------------------------------------------------------------------
@@ -210,6 +238,7 @@ def build_market_analyst_agent() -> Agent:
     Returns:
         Configured CrewAI Agent instance.
     """
+    llm = build_configured_llm()
     return Agent(
         role="Market Analyst",
         goal=(
@@ -229,6 +258,8 @@ def build_market_analyst_agent() -> Agent:
             AssetOpportunityFetcherTool(),
             RiskMetricsSummariserTool(),
         ],
+        llm=llm,
+        function_calling_llm=llm,
         verbose=True,
         allow_delegation=False,
         max_iter=4,
@@ -250,6 +281,7 @@ def build_allocation_architect_agent() -> Agent:
     Returns:
         Configured CrewAI Agent instance.
     """
+    llm = build_configured_llm()
     return Agent(
         role="Allocation Architect",
         goal=(
@@ -270,6 +302,7 @@ def build_allocation_architect_agent() -> Agent:
             "You never recommend products you have not verified through the analyst's data."
         ),
         tools=[],  # Architect reasons only — no direct DB access needed.
+        llm=llm,
         verbose=True,
         allow_delegation=False,
         max_iter=3,

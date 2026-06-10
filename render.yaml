@@ -1,0 +1,39 @@
+services:
+  - type: web
+    name: agent-pride
+    runtime: python
+    plan: starter
+    region: oregon
+    buildCommand: ./render-build.sh
+    preDeployCommand: python manage.py migrate
+    startCommand: gunicorn config.wsgi:application --bind 0.0.0.0:$PORT --workers 2 --timeout 180
+    healthCheckPath: /
+    envVars:
+      - key: DJANGO_SETTINGS_MODULE
+        value: config.settings.production
+      - key: SECRET_KEY
+        generateValue: true
+      - key: DATABASE_URL
+        fromDatabase:
+          name: agent-pride-db
+          property: connectionString
+      - key: LLM_PROVIDER
+        value: groq
+      - key: LLM_MODEL
+        value: groq/llama-3.3-70b-versatile
+      - key: LLM_API_KEY
+        sync: false
+      - key: LLM_BASE_URL
+        value: https://api.groq.com/openai/v1
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: OPENAI_API_BASE
+        value: https://api.groq.com/openai/v1
+      - key: PYTHON_VERSION
+        value: 3.11.9
+
+databases:
+  - name: agent-pride-db
+    databaseName: agent_pride
+    user: agent_pride_user
+    plan: basic-256mb

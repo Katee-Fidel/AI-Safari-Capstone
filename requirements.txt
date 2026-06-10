@@ -12,6 +12,7 @@ django-cors-headers==4.4.*
 # Align CrewAI versions with Render/build so agent/tool APIs match
 crewai==1.14.6
 crewai-tools==1.14.6
+litellm>=1.80.0,<2.0.0
 
 # CrewAI tool code expects langchain_core types
 langchain-core>=0.3.0
@@ -19,9 +20,8 @@ langchain>=0.3.0
 
 
 # Data validation & contracts
-# NOTE: Pin pydantic-core explicitly to avoid Render building from source.
-pydantic==2.10.6
-pydantic-core==2.27.2
+# CrewAI 1.14.6 requires pydantic >=2.11.9,<2.13.
+pydantic>=2.11.9,<2.13
 
 
 # Force pip to use prebuilt wheels when available (prevents maturin/rust source fallback)
@@ -30,7 +30,6 @@ pydantic-core==2.27.2
 
 # Build helpers (avoid wheel/metadata issues on managed builders)
 
-# NOTE: Pin pydantic-core version explicitly and avoid Rust builds.
 setuptools>=69.0.0
 
 wheel>=0.43.0

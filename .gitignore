@@ -5,6 +5,8 @@
 
 # Virtual environments
 .venv-1/
+.codex-test-venv/
+.crewai-local/
 venv/
 env/
 
