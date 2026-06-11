@@ -2,7 +2,7 @@ services:
   - type: web
     name: agent-pride
     runtime: python
-    plan: starter
+    plan: free
     region: oregon
     buildCommand: ./render-build.sh
     preDeployCommand: python manage.py migrate
@@ -36,4 +36,4 @@ databases:
   - name: agent-pride-db
     databaseName: agent_pride
     user: agent_pride_user
-    plan: basic-256mb
+    plan: free
