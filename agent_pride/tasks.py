@@ -136,14 +136,11 @@ The JSON must strictly follow this structure:
       "rationale": "<1-2 sentence justification>"
     }}
   ],
-  "chain_of_thought_md": "<Full reasoning trace as a SINGLE LINE string. Use literal \\n for line breaks. Do NOT use actual newlines inside this string value.>"
+  "chain_of_thought_md": "<Brief 2-3 sentence reasoning summary as a SINGLE LINE. No actual newlines.>"
 }}
 
 The `chain_of_thought_md` field must describe:
-- Why each asset class was chosen or excluded.
-- How liquidity constraints shaped the allocation.
-- How the income pattern informed weighting decisions.
-- Any risk trade-offs acknowledged.
+The `chain_of_thought_md` field must be a brief 2-3 sentence summary of key allocation decisions. Keep it concise.
 """.strip()
 
     return Task(

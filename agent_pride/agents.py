@@ -18,6 +18,8 @@ Security constraints:
 
 from __future__ import annotations
 
+import os
+
 import json
 import logging
 from typing import Any
@@ -49,9 +51,11 @@ def build_configured_llm() -> LLM:
         "model": model,
         "temperature": 0.2,
         "timeout": 120,
+        "max_tokens": 2048,
     }
     if api_key:
         kwargs["api_key"] = api_key
+        os.environ["OPENAI_API_KEY"] = api_key
     if base_url:
         kwargs["base_url"] = base_url
     if provider.lower() == "groq":
